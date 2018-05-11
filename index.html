@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>HOME | Type Me</title>
+        <style>
+     body {
+  width: 100%;
+  overflow: hidden;
+  background: #222;
+}
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas" width=400 height=200></canvas>
+    </body>
+  
+    <script>
+            var k = -40;
+var spring_length = window.innerHeight/2;
+var b = -0.7;
+
+var frameRate  = 1/60;
+var nLines = window.innerWidth/20;
+var lines = [];
+var colors = ['#f74242', '#fc674a', '#fd935e', '#f9c146', '#f9f542',
+             '#b4de42', '#73c059', '#529d74', '#52579b', '#55429f',
+             '#8042a2', '#af42a2', '#b14277'];
+
+var canvas;
+var ctx;
+var width  = window.innerWidth;
+var height = window.innerHeight;
+
+function Line(i) {
+  this.x = i*20;
+  this.y = -100 + Math.random()*100;
+  this.v = 0;
+  this.mass = 0.5;
+  this.width = 20;
+  this.height = height*0.62 + Math.random()*height*0.2;
+  this.color = colors[i%colors.length];
+  this.triggerTimeout = 0;
+  this.triggered = false;
+}
+
+function createLines() {
+  for (var i = 0; i < nLines; i++) {
+    var line = new Line(i);
+    lines.push(line);
+  }
+}
+
+function loop() {
+  ctx.clearRect(0, 0, width, height);
+  for (var i = 0; i < lines.length; i++) {
+    line = lines[i];
+    var F_spring = k * ( (line.y ) - spring_length );
+    var F_damper = b * ( line.v );
+
+    var a = ( F_spring + F_damper ) / line.mass;
+    line.v += a * frameRate;
+    line.y += line.v * frameRate;
+    
+    ctx.fillStyle = line.color;
+    var left = line.x - line.width/2;
+    var right = line.x + line.width/2;
+    var top = line.y - line.height/2;
+    var bottom = line.y + line.height/2;
+    
+    ctx.fillRect(left, top, line.width, line.height);
+    if (!line.triggered && mouse.x > left && mouse.x < right && mouse.y > top && mouse.y < bottom) {
+      triggerLine(line);
+    }
+  }
+  requestAnimationFrame(loop);
+};
+
+function triggerLine(line) {
+  line.triggered = true;
+  line.y += -height*0.2 + Math.random()*height*0.1;
+  line.triggerTimeout = setTimeout(function() {
+    line.triggered = false;
+  }, 1300);
+}
+
+function setup() {
+    canvas = document.getElementById('canvas');
+  	canvas.width = width;
+  	canvas.height = height;
+    ctx = canvas.getContext('2d');
+
+    canvas.onmousemove = getMousePosition;
+  	canvas.ontouchmove = getTouchPosition;
+  	window.onresize = resize;
+  	
+  	createLines();
+  	requestAnimationFrame(loop);
+}
+
+var mouse = {x: 0, y: 0, isDown: false};
+
+function getMousePosition(e) {
+    mouse.y = e.pageY;
+  	mouse.x = e.pageX;
+}
+
+function getTouchPosition(e) {
+  	mouse.y = e.targetTouches[0].pageY;
+  	mouse.x = e.targetTouches[0].pageX;
+}
+
+function resize() {
+  var width  = window.innerWidth;
+	var height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+  _lines = [];
+  createLines();
+}
+setup();
+
+
+        </script>
+</html>
